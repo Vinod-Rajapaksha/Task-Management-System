@@ -4,7 +4,7 @@ export const createTask = async ( req, res, next ) => {
     try {
       const task =
         await taskService.createTask(
-          req.body,
+          req.validatedData.body,
           req.user._id
         );
 
@@ -39,7 +39,7 @@ export const getTask = async ( req, res, next ) => {
     try {
       const task =
         await taskService.getTaskById(
-          req.params.id,
+          req.validatedData.params.id,
           req.user._id
         );
 
@@ -63,8 +63,8 @@ export const updateTask = async ( req, res, next ) => {
     try {
       const task =
         await taskService.updateTask(
-          req.params.id,
-          req.body,
+          req.validatedData.params.id,
+          req.validatedData.body,
           req.user._id
         );
 
@@ -80,7 +80,7 @@ export const updateTask = async ( req, res, next ) => {
 export const deleteTask = async ( req, res, next ) => {
     try {
       await taskService.deleteTask(
-        req.params.id,
+        req.validatedData.params.id,
         req.user._id
       );
 
@@ -98,8 +98,8 @@ export const updateStatus = async ( req, res, next ) => {
     try {
       const task =
         await taskService.updateTaskStatus(
-          req.params.id,
-          req.body.status,
+          req.validatedData.params.id,
+          req.validatedData.body.status,
           req.user._id
         );
 

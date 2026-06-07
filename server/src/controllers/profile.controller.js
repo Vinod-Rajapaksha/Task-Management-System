@@ -21,7 +21,7 @@ export const updateProfile = async ( req, res, next ) => {
       const user =
         await profileService.updateProfile(
           req.user._id,
-          req.body
+          req.validatedData.body
         );
 
       res.status(200).json({
@@ -40,7 +40,7 @@ export const changePassword = async ( req, res, next ) => {
       const {
         oldPassword,
         newPassword,
-      } = req.body;
+      } = req.validatedData.body;
 
       await profileService.changePassword(
         req.user._id,

@@ -8,22 +8,29 @@ import {
   deleteTask,
   updateStatus,
 } from "../controllers/task.controller.js";
+import validate from "../middleware/validation.middleware.js";
+import {
+  createTaskSchema,
+  updateTaskSchema,
+  taskIdSchema,
+  updateStatusSchema,
+} from "../validations/task.validation.js";
 
 const router = express.Router();
 
 router.use(protect);
 
 router.route("/")
-  .post(createTask)
+  .post(validate(createTaskSchema), createTask)
   .get(getTasks);
 
 router.route("/:id")
-  .get(getTask)
-  .put(updateTask)
-  .delete(deleteTask);
+  .get(validate(taskIdSchema), getTask)
+  .put(validate(updateTaskSchema), updateTask)
+  .delete(validate(taskIdSchema), deleteTask);
 
 router.patch(
-  "/:id/status",
+  "/:id/status", validate(updateStatusSchema),
   updateStatus
 );
 
