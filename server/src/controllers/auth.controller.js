@@ -6,7 +6,7 @@ export const register = async ( req, res, next ) => {
         name,
         email,
         password,
-      } = req.body;
+      } = req.validatedData.body;
 
       const user =
         await registerUser(
@@ -33,7 +33,7 @@ export const register = async ( req, res, next ) => {
 export const login = async ( req, res, next ) => {
     try {
       const { email, password } =
-        req.body;
+        req.validatedData.body;
 
       const result =
         await loginUser(
