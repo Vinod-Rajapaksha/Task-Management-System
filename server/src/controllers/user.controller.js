@@ -19,7 +19,7 @@ export const getUser = async ( req, res, next ) => {
     try {
       const user =
         await userService.getUserById(
-          req.params.id
+          req.validatedData.params.id
         );
 
       res.status(200).json({
@@ -34,7 +34,7 @@ export const getUser = async ( req, res, next ) => {
 export const deleteUser = async ( req, res, next ) => {
     try {
       await userService.deleteUser(
-        req.params.id
+        req.validatedData.params.id
       );
 
       res.status(200).json({
