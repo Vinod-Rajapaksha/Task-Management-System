@@ -57,6 +57,9 @@ export const loginUser =
       );
     }
 
+    user.lastLogin = new Date();
+    await user.save();
+    
     return {
       accessToken:
         generateAccessToken(
