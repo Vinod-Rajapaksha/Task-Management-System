@@ -61,10 +61,13 @@ export const getTask = async ( req, res, next ) => {
 
 export const updateTask = async ( req, res, next ) => {
     try {
+      console.log(req.params);
+      console.log(req.validatedData);
+      
       const task =
         await taskService.updateTask(
-          req.validatedData.params.id,
-          req.validatedData.body,
+          req.params.id,
+          req.body, 
           req.user._id
         );
 
