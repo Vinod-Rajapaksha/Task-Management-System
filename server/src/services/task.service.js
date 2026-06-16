@@ -3,30 +3,27 @@ import Notification from "../models/Notification.model.js";
 import { TASK_STATUS, NOTIFICATION_TYPES } from "../utils/constants.js";
 import { calculatePriority } from "../utils/priorityHelper.js";
 
-export const createTask =
-  async (taskData, userId) => {
-    const priority =
-      calculatePriority(
-        taskData.dueDate
-      );
+export const createTask = async (taskData, userId) => {
 
-    const task =
-      await Task.create({
-        ...taskData,
-        priority,
-        user: userId,
-      });
+  const priority = taskData.priority
+    ? taskData.priority
+    : calculatePriority(taskData.dueDate);
 
-    await Notification.create({
-      user: userId,
-      type:
-        NOTIFICATION_TYPES.TASK_CREATED,
-      title: "Task Created",
-      message: `${task.title} was created successfully.`,
-    });
+  const task = await Task.create({
+    ...taskData,
+    priority,
+    user: userId,
+  });
 
-    return task;
-  };
+  await Notification.create({
+    user: userId,
+    type: NOTIFICATION_TYPES.TASK_CREATED,
+    title: "Task Created",
+    message: `${task.title} was created successfully.`,
+  });
+
+  return task;
+};
 
 export const getTasks =
   async (
@@ -73,48 +70,42 @@ export const getTaskById =
     });
   };
 
-export const updateTask =
-  async (
-    taskId,
-    taskData,
-    userId
-  ) => {
-    const task =
-      await Task.findOne({
-        _id: taskId,
-        user: userId,
-      });
+export const updateTask = async (
+  taskId,
+  taskData,
+  userId
+) => {
 
-    if (!task) {
-      throw new Error(
-        "Task not found"
-      );
-    }
+  const task = await Task.findOne({
+    _id: taskId,
+    user: userId,
+  });
 
-    if (taskData.dueDate) {
-      task.priority =
-        calculatePriority(
-          taskData.dueDate
-        );
-    }
+  if (!task) {
+    throw new Error("Task not found");
+  }
 
-    Object.assign(
-      task,
-      taskData
-    );
 
-    await task.save();
+  if (!taskData.priority && taskData.dueDate) {
+    task.priority = calculatePriority(taskData.dueDate);
+  }
 
-    await Notification.create({
-      user: userId,
-      type:
-        NOTIFICATION_TYPES.TASK_UPDATED,
-      title: "Task Updated",
-      message: `${task.title} was updated successfully.`,
-    });
 
-    return task;
-  };
+  Object.assign(task, taskData);
+
+  await task.save();
+
+
+  await Notification.create({
+    user: userId,
+    type: NOTIFICATION_TYPES.TASK_UPDATED,
+    title: "Task Updated",
+    message: `${task.title} was updated successfully.`,
+  });
+
+
+  return task;
+};
 
 export const deleteTask =
   async (
