@@ -55,6 +55,7 @@ export const updateStatusSchema =
     body: z.object({
       status: z.enum([
         "Pending",
+        "In Progress",
         "Completed",
       ]),
     }),
