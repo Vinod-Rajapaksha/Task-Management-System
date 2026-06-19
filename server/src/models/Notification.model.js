@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { NOTIFICATION_TYPES } from "../utils/constants.js";
 const notificationSchema = new mongoose.Schema(
     {
       user: {
@@ -12,6 +12,7 @@ const notificationSchema = new mongoose.Schema(
       type: {
         type: String,
         required: true,
+        enum: Object.values(NOTIFICATION_TYPES),
       },
 
       title: {

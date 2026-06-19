@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { TASK_STATUS, TASK_PRIORITY } from "../utils/constants.js";
+import { calculatePriority } from "../utils/priorityHelper.js";
 
 const taskSchema = new mongoose.Schema(
     {
@@ -21,13 +22,6 @@ const taskSchema = new mongoose.Schema(
           TASK_STATUS.PENDING,
       },
 
-      priority: {
-        type: String,
-        enum: Object.values(
-          TASK_PRIORITY
-        ),
-      },
-
       dueDate: {
         type: Date,
       },
@@ -38,11 +32,22 @@ const taskSchema = new mongoose.Schema(
         ref: "User",
         required: true,
       },
+
+      deadlineReminderSent: {
+        type: Boolean,
+        default: false,
+      },
     },
     {
       timestamps: true,
+      toJSON: { virtuals: true },
+      toObject: { virtuals: true },
     }
 );
+
+taskSchema.virtual("priority").get(function () {
+  return calculatePriority(this.dueDate);
+});
 
 const Task = mongoose.model(
   "Task",
