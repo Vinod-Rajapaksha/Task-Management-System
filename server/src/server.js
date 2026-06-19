@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import app from "./app.js";
 import connectDB from "./config/db.js";
+import { initDeadlineTracker } from "./utils/deadlineTracker.js";
 
 dotenv.config();
 
@@ -11,6 +12,9 @@ let server;
 const startServer = async () => {
   try {
     await connectDB();
+    console.log("Database online. Alert engines primed.");
+
+    initDeadlineTracker();
 
     server = app.listen(PORT, () => {
       console.log(
