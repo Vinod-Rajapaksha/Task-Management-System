@@ -1,17 +1,10 @@
 import Task from "../models/Task.model.js";
 import Notification from "../models/Notification.model.js";
-import { TASK_STATUS, NOTIFICATION_TYPES } from "../utils/constants.js";
-import { calculatePriority } from "../utils/priorityHelper.js";
+import { TASK_STATUS, NOTIFICATION_TYPES, TASK_PRIORITY } from "../utils/constants.js";
 
 export const createTask = async (taskData, userId) => {
-
-  const priority = taskData.priority
-    ? taskData.priority
-    : calculatePriority(taskData.dueDate);
-
   const task = await Task.create({
     ...taskData,
-    priority,
     user: userId,
   });
 
@@ -39,11 +32,6 @@ export const getTasks =
         filters.status;
     }
 
-    if (filters.priority) {
-      query.priority =
-        filters.priority;
-    }
-
     if (filters.search) {
       query.title = {
         $regex:
@@ -57,6 +45,15 @@ export const getTasks =
     ).sort({
       createdAt: -1,
     });
+
+    if (filters.priority) {
+      tasks = tasks.filter(
+        (task) =>
+          task.priority === filters.priority
+      );
+    }
+
+    return tasks;
 };
 
 export const getTaskById =
@@ -85,25 +82,37 @@ export const updateTask = async (
     throw new Error("Task not found");
   }
 
+  const oldPriority = task.priority;
 
-  if (!taskData.priority && taskData.dueDate) {
-    task.priority = calculatePriority(taskData.dueDate);
+  if (taskData.dueDate && new Date(taskData.dueDate).getTime() !== new Date(task.dueDate).getTime()) {
+    task.deadlineReminderSent = false;
   }
-
 
   Object.assign(task, taskData);
 
   await task.save();
 
+  const newPriority = task.priority;
 
-  await Notification.create({
-    user: userId,
-    type: NOTIFICATION_TYPES.TASK_UPDATED,
-    title: "Task Updated",
-    message: `${task.title} was updated successfully.`,
-  });
-
-
+  if (oldPriority !== TASK_PRIORITY.HIGH && newPriority === TASK_PRIORITY.HIGH) {
+    if (!task.deadlineReminderSent) {
+      await Notification.create({
+        user: userId,
+        type: NOTIFICATION_TYPES.DEADLINE_REMINDER,
+        title: "Urgent: High Priority Deadline",
+        message: `The task "${task.title}" shifted close to its deadline and is now High Priority.`,
+      });
+      task.deadlineReminderSent = true;
+      await task.save();
+    }
+  } else {
+    await Notification.create({
+      user: userId,
+      type: NOTIFICATION_TYPES.TASK_UPDATED,
+      title: "Task Updated",
+      message: `${task.title} was updated successfully.`,
+    });
+  }
   return task;
 };
 
@@ -159,18 +168,22 @@ export const updateTaskStatus =
 
     await task.save();
 
-    if (
-      status ===
-      TASK_STATUS.COMPLETED
-    ) {
-      await Notification.create({
-        user: userId,
-        type:
-          NOTIFICATION_TYPES.TASK_COMPLETED,
-        title: "Task Completed",
-        message: `${task.title} has been completed.`,
-      });
-    }
-
-    return task;
-  };
+    if (status === TASK_STATUS.COMPLETED) {
+    await Notification.create({
+      user: userId,
+      type: NOTIFICATION_TYPES.TASK_COMPLETED,
+      title: "Task Completed",
+      message: `${task.title} has been completed.`,
+    });
+  } else if (task.priority === TASK_PRIORITY.HIGH && !task.deadlineReminderSent) {
+    await Notification.create({
+      user: userId,
+      type: NOTIFICATION_TYPES.DEADLINE_REMINDER,
+      title: "Urgent: High Priority Deadline",
+      message: `The active task "${task.title}" is currently flagged as High Priority.`,
+    });
+    task.deadlineReminderSent = true;
+    await task.save();
+  }
+  return task;
+};
