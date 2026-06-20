@@ -1,5 +1,4 @@
 import Notification from "../models/Notification.model.js";
-import { NOTIFICATION_TYPES } from "../utils/constants.js";
 
 export const createNotification =
   async (
